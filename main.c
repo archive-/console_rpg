@@ -6,10 +6,11 @@
 
 bool end_game, entering_text;
 int x, y;
+bool w_key, a_key, s_key, d_key;
 
-void handle_input(TCOD_map_t map)
+void handle_input()
 {
-    TCOD_key_t key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED);
+    TCOD_key_t key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED | TCOD_KEY_RELEASED);
     if (key.vk == TCODK_NONE) /* no key pressed */
         return;
     else if (key.vk == TCODK_ESCAPE) {
@@ -17,27 +18,21 @@ void handle_input(TCOD_map_t map)
         return;
     }
     else if (key.vk == TCODK_ENTER) {
-        entering_text ^= entering_text;
+        entering_text = !entering_text;
     }
-    switch (key.c) {
-        case 'w':
-            if (TCOD_map_is_walkable(map, x, y-1)) --y;
-            break;
-        case 'a':
-            if (TCOD_map_is_walkable(map, x-1, y)) --x;
-            break;
-        case 's':
-            if (TCOD_map_is_walkable(map, x, y+1)) ++y;
-            break;
-        case 'd':
-            if (TCOD_map_is_walkable(map, x+1, y)) ++x;
-            break;
-        case 'i': /* open inventory */
-            break;
-        case 0:
-        default:
-            break;
-    }
+  
+    if (key.c == 'w') {
+		w_key = !w_key;
+	}
+	if (key.c == 'a') {
+		a_key = !a_key;
+	}
+	if (key.c == 's') {
+		s_key = !s_key;
+	}
+	if (key.c == 'd') {
+		d_key = !d_key;
+	}
 }
 
 void draw_game(TCOD_console_t map_console, TCOD_map_t map)
@@ -72,15 +67,33 @@ void draw_game(TCOD_console_t map_console, TCOD_map_t map)
     TCOD_console_flush(); /* print screen */
 }
 
+void update_game(TCOD_map_t map)
+{
+	if (w_key) {
+		if (TCOD_map_is_walkable(map, x, y-1)) --y;
+	}
+	if (a_key) {
+		if (TCOD_map_is_walkable(map, x-1, y)) --x;
+	}
+	if (s_key) {
+		if (TCOD_map_is_walkable(map, x, y+1)) ++y;
+	}
+	if (d_key) {
+		if (TCOD_map_is_walkable(map, x+1, y)) ++x;
+	}
+}
+
 int main(void)
 {
     int w, h;
     TCOD_console_init_root(160, 128, "Zombeh v0.01", true);
     TCOD_console_t map_console = TCOD_console_new(120, 120);
     TCOD_mouse_show_cursor(true);
+    TCOD_console_set_keyboard_repeat(0, 50); 
     TCOD_sys_set_fps(60);
     end_game = entering_text = false;
     x = y = 10;
+    w_key = a_key = s_key = d_key = false;
     TCOD_map_t map = TCOD_map_new(100, 100);
     for (h = 0; h < 100; ++h) {
         for (w = 0; w < 100; ++w) {
@@ -93,7 +106,8 @@ int main(void)
         }
     }
     while (!end_game && !TCOD_console_is_window_closed()) {
-        handle_input(map);
+        handle_input();
+        update_game(map);
         draw_game(map_console, map);
     }
     return EXIT_SUCCESS;
