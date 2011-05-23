@@ -34,7 +34,7 @@ void draw_game(TCOD_console_t map_console, TCOD_map_t map, TCOD_console_t chat_c
     TCOD_console_clear(chat_console);
     TCOD_console_print_frame(map_console, 0, 0, 122, 92, true, TCOD_BKGND_NONE, "MAP");
     TCOD_console_print_frame(chat_console, 0, 0, 122, 30, true, TCOD_BKGND_NONE, "CHAT");
-    TCOD_map_compute_fov(map, (int)(x), (int)(y), 10, true, FOV_SHADOW);
+    TCOD_map_compute_fov(map, (int)(x), (int)(y), 12, true, FOV_BASIC);
     for (h = 0; h < 90; ++h) {
         for (w = 0; w < 120; ++w) {
             if (TCOD_map_is_in_fov(map, w, h)) {
@@ -98,7 +98,7 @@ int main(void)
     TCOD_sys_set_fps(60);
     end_game = entering_text = false;
     x = y = 10.f;
-    vx = vy = 6.f;
+    vx = vy = 18.f;
     w_key = a_key = s_key = d_key = false;
     for (h = 0; h < 90; ++h) {
         for (w = 0; w < 120; ++w) {
