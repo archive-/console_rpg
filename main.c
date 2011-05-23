@@ -3,37 +3,60 @@
 #include <string.h>
 #include <unistd.h>
 #include "libtcod.h"
+#include "txtfield.h"
 
 bool end_game, entering_text;
 float x, y, vx, vy;
 bool w_key, a_key, s_key, d_key, map_seen[90][120];
 
-void handle_input()
+void handle_input(TCOD_text_t chat)
 {
-    TCOD_key_t key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED | TCOD_KEY_RELEASED);
-    if (key.vk == TCODK_NONE) /* no key pressed */
-        return;
+    TCOD_key_t key;
+    if (entering_text) {
+        key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED);
+    }
+    else {
+        /* TODO: fix the getting stuck in entering_text because of ENTER on release */
+        key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED | TCOD_KEY_RELEASED);
+    }
+
+    if (key.vk == TCODK_NONE) return;
     else if (key.vk == TCODK_ESCAPE) {
         end_game = true;
         return;
     }
-    else if (key.vk == TCODK_ENTER) {
-        entering_text = !entering_text;
+    else if (!entering_text && key.vk == TCODK_ENTER) {
+        entering_text = true;
+        TCOD_console_set_keyboard_repeat(1000, 1000); 
+        return;
     }
-  
-    if (key.c == 'w') w_key = !w_key;
-    if (key.c == 'a') a_key = !a_key;
-    if (key.c == 's') s_key = !s_key;
-    if (key.c == 'd') d_key = !d_key;
+    
+    if (entering_text) {
+        entering_text = TCOD_text_update(chat, key);
+        if (!entering_text) TCOD_console_set_keyboard_repeat(0, 50); 
+    }
+    else {
+        if (key.c == 'w') w_key = !w_key;
+        if (key.c == 'a') a_key = !a_key;
+        if (key.c == 's') s_key = !s_key;
+        if (key.c == 'd') d_key = !d_key;
+        
+    }
 }
 
-void draw_game(TCOD_console_t map_console, TCOD_map_t map, TCOD_console_t chat_console)
+void draw_game(TCOD_console_t map_console, TCOD_map_t map, TCOD_console_t chat_console, TCOD_text_t chat)
 {
     int w, h;
     TCOD_console_clear(map_console);
     TCOD_console_clear(chat_console);
     TCOD_console_print_frame(map_console, 0, 0, 122, 92, true, TCOD_BKGND_NONE, "MAP");
     TCOD_console_print_frame(chat_console, 0, 0, 122, 30, true, TCOD_BKGND_NONE, "CHAT");
+    if (entering_text) {
+        TCOD_text_render(chat_console, chat);
+    }
+    else {
+        TCOD_text_reset(chat);
+    }
     TCOD_map_compute_fov(map, (int)(x), (int)(y), 10, true, FOV_SHADOW);
     for (h = 0; h < 90; ++h) {
         for (w = 0; w < 120; ++w) {
@@ -91,8 +114,8 @@ int main(void)
     TCOD_console_t map_console = TCOD_console_new(122, 92);
     TCOD_console_t chat_console = TCOD_console_new(122, 30);
     TCOD_map_t map = TCOD_map_new(120, 90);
-    //TCOD_text_t chat = TCOD_text_init(1, 1, 120, 28, 255);
-    //TCOD_text_set_properties(chat, 
+    TCOD_text_t chat = TCOD_text_init(1, 28, 120, 1, 255);
+    TCOD_text_set_properties(chat, TCOD_CHAR_BLOCK1, 2, ">> ", 4);
     TCOD_mouse_show_cursor(true);
     TCOD_console_set_keyboard_repeat(0, 50); 
     TCOD_sys_set_fps(60);
@@ -111,9 +134,9 @@ int main(void)
         }
     }
     while (!end_game && !TCOD_console_is_window_closed()) {
-        handle_input();
+        handle_input(chat);
         update_game(map);
-        draw_game(map_console, map, chat_console);
+        draw_game(map_console, map, chat_console, chat);
     }
     return EXIT_SUCCESS;
 }
