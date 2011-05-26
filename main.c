@@ -7,29 +7,26 @@
 #include "input.h"
 #include "graphics.h"
 
-bool end_game, entering_text;
+int chat_index;
+bool end_game, entering_text, w_key, a_key, s_key, d_key;
 float x, y, vx, vy, map_color_scalar[90][120];
-bool w_key, a_key, s_key, d_key;
+char *chat_history[1024];
 
 /* TODO networking */
 void update_game(TCOD_map_t map)
 {
-        if (w_key) {
-            if (TCOD_map_is_walkable(map, x, y-1))
-                y -= vy * TCOD_sys_get_last_frame_length();
-        }
-        if (a_key) {
-            if (TCOD_map_is_walkable(map, x-1, y))
-                x -= vx * TCOD_sys_get_last_frame_length();
-        }
-        if (s_key) {
-            if (TCOD_map_is_walkable(map, x, y+1))
-                y += vy * TCOD_sys_get_last_frame_length();
-        }
-        if (d_key) {
-            if (TCOD_map_is_walkable(map, x+1, y))
-                x += vx * TCOD_sys_get_last_frame_length();
-        }
+    if (w_key)
+        if (TCOD_map_is_walkable(map, x, y-1))
+            y -= vy * TCOD_sys_get_last_frame_length();
+    if (a_key)
+        if (TCOD_map_is_walkable(map, x-1, y))
+            x -= vx * TCOD_sys_get_last_frame_length();
+    if (s_key)
+        if (TCOD_map_is_walkable(map, x, y+1))
+            y += vy * TCOD_sys_get_last_frame_length();
+    if (d_key)
+        if (TCOD_map_is_walkable(map, x+1, y))
+            x += vx * TCOD_sys_get_last_frame_length();
 }
 
 int main(void)
@@ -40,7 +37,9 @@ int main(void)
             map_color_scalar[h][w] = 0.f;
         }
     }
-    
+
+    chat_index = 0;
+
     TCOD_console_init_root(160, 128, "console rpg v0.01", true);
     TCOD_console_t map_console = TCOD_console_new(122, 92);
     TCOD_console_t chat_console = TCOD_console_new(122, 30);
@@ -54,7 +53,7 @@ int main(void)
     x = y = 10.f;
     vx = vy = 10.f;
     w_key = a_key = s_key = d_key = false;
-    
+
     /* TODO generate map properties differently -- load from file, etc. */
     for (h = 0; h < 90; ++h) {
         for (w = 0; w < 120; ++w) {
