@@ -12,6 +12,15 @@ bool end_game, entering_text, w_key, a_key, s_key, d_key;
 float x, y, vx, vy, map_color_scalar[90][120];
 char *chat_history[1024];
 
+void free_stuff(void)
+{
+    int i = 0;
+    while (chat_history[i]) {
+        free(chat_history[i]);
+        ++i;
+    }
+}
+
 /* TODO networking */
 void update_game(TCOD_map_t map)
 {
@@ -73,5 +82,6 @@ int main(void)
         draw_game(map_console, map, chat_console, chat);
     }
 
+    free_stuff();
     return EXIT_SUCCESS;
 }

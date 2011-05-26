@@ -28,6 +28,7 @@ void handle_input(TCOD_text_t chat)
     }
 
     if (entering_text) {
+        printf("ENTERING TEXT!!!!\n");
         entering_text = TCOD_text_update(chat, key);
         if (!entering_text) {
             chat_history[chat_index] = strdup(TCOD_text_get(chat));

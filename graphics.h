@@ -67,7 +67,7 @@ void draw_game(TCOD_console_t map_console, TCOD_map_t map, TCOD_console_t chat_c
 
     // print chat history in chat_console
     int i = 0;
-    while (chat_history[i] != NULL) {
+    while (chat_history[i]) {
         TCOD_console_print_left(chat_console, 1, 2*i+2, TCOD_BKGND_NONE, "%s\n", chat_history[i]);
         ++i;
     }
